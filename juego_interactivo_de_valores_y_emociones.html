@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeMind: Valores y Emociones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-panel: rgba(17, 25, 40, 0.82);
+      --border-glass: rgba(56, 189, 248, 0.25);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.45);
+      --secondary: #818cf8;
+      --accent: #34d399;
+      --accent-glow: rgba(52, 211, 153, 0.45);
+      --warning: #fbbf24;
+      --danger: #fb7185;
+      --danger-bg: rgba(244, 63, 94, 0.14);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 1rem;
+    }
+
+    /* Fondo animado tipo pantalla interactiva */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .ambient-glow {
+      position: fixed;
+      width: 45vw;
+      height: 45vw;
+      border-radius: 50%;
+      filter: blur(110px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      animation: floatGlow 10s ease-in-out infinite alternate;
+    }
+
+    .glow-1 {
+      top: -10%;
+      left: -10%;
+      background: radial-gradient(circle, #0284c7, transparent 70%);
+    }
+
+    .glow-2 {
+      bottom: -15%;
+      right: -10%;
+      background: radial-gradient(circle, #6366f1, transparent 70%);
+      animation-delay: -5s;
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(4%, 6%) scale(1.1); }
+    }
+
+    /* Contenedor Principal */
+    .app-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 820px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 30px rgba(56, 189, 248, 0.12);
+      padding: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    @media (min-width: 640px) {
+      .app-container {
+        padding: 2.25rem;
+      }
+    }
+
+    /* Barra superior HUD */
+    .hud-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #fff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--primary);
+      display: block;
+    }
+
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .stat-pill {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.4rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .sound-btn {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sound-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Barra de progreso */
+    .progress-wrapper {
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+      font-weight: 500;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 999px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    /* Pantallas */
+    .screen {
+      display: none;
+      animation: fadeSlideIn 0.4s ease forwards;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Pantalla de Inicio */
+    .intro-hero {
+      text-align: center;
+      padding: 1.5rem 0.5rem;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--primary);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .intro-hero h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.85rem;
+    }
+
+    @media (min-width: 640px) {
+      .intro-hero h1 {
+        font-size: 2.35rem;
+      }
+    }
+
+    .intro-hero p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 580px;
+      margin: 0 auto 1.75rem auto;
+    }
+
+    .how-to-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.85rem;
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    @media (min-width: 640px) {
+      .how-to-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .how-card {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 1rem;
+    }
+
+    .how-card .step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+
+    .how-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .how-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    /* Botones principales */
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+      color: white;
+      border: none;
+      padding: 0.95rem 2rem;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5);
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(56, 189, 248, 0.55);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Escena Visual Interactiva (Antes / Después de reparar valores) */
+    .scene-stage {
+      background: linear-gradient(145deg, rgba(30, 15, 28, 0.85), rgba(15, 23, 42, 0.92));
+      border: 1.5px solid rgba(251, 113, 133, 0.45);
+      border-radius: 20px;
+      padding: 1.25rem;
+      margin-bottom: 1.35rem;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: inset 0 0 25px rgba(244, 63, 94, 0.12);
+    }
+
+    .scene-stage.repaired {
+      background: linear-gradient(145deg, rgba(6, 40, 35, 0.88), rgba(15, 23, 42, 0.92));
+      border-color: rgba(52, 211, 153, 0.65);
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.22), inset 0 0 25px rgba(52, 211, 153, 0.15);
+    }
+
+    .scene-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .status-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.28rem 0.7rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(244, 63, 94, 0.2);
+      color: #fda4af;
+      border: 1px solid rgba(251, 113, 133, 0.4);
+      transition: all 0.4s ease;
+    }
+
+    .scene-stage.repaired .status-badge {
+      background: rgba(16, 185, 129, 0.22);
+      color: #6ee7b7;
+      border-color: rgba(52, 211, 153, 0.5);
+    }
+
+    .visual-comic-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      background: rgba(9, 13, 22, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .comic-actor {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .comic-bubble {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #f8fafc;
+      text-align: center;
+      max-width: 140px;
+    }
+
+    .comic-emoji {
+      font-size: 2.6rem;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+      animation: floatActor 2.6s infinite ease-in-out;
+    }
+
+    .comic-connector {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--danger);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .scene-stage.repaired .comic-connector {
+      color: var(--accent);
+    }
+
+    @keyframes floatActor {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .scenario-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+      color: #fff;
+    }
+
+    .scenario-desc {
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+    }
+
+    /* Bloque lógico / Zonas de colocación (Dropzones) */
+    .logic-board {
+      background: rgba(9, 13, 22, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 1.25rem;
+      margin-bottom: 1.35rem;
+    }
+
+    .logic-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .slots-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .slots-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .slot-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .slot-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .slot-title.second-label {
+      color: var(--secondary);
+    }
+
+    .drop-zone {
+      min-height: 64px;
+      border: 2px dashed rgba(251, 113, 133, 0.45);
+      border-radius: 14px;
+      background: rgba(30, 41, 59, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--primary);
+      background: rgba(56, 189, 248, 0.12);
+      transform: scale(1.01);
+    }
+
+    .drop-zone.ready-target {
+      border-color: var(--warning);
+      background: rgba(251, 191, 36, 0.12);
+      animation: targetPulse 1.2s infinite;
+    }
+
+    @keyframes targetPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.35); }
+      50% { box-shadow: 0 0 0 6px rgba(251, 191, 36, 0); }
+    }
+
+    .drop-zone.filled {
+      border-style: solid;
+      border-color: var(--primary);
+      background: rgba(56, 189, 248, 0.2);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .drop-zone.filled.second-filled {
+      border-color: var(--secondary);
+      background: rgba(129, 140, 248, 0.22);
+    }
+
+    .drop-zone.correct-lock {
+      border-color: var(--accent) !important;
+      background: rgba(16, 185, 129, 0.25) !important;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .drop-zone.wrong-shake {
+      border-color: var(--danger) !important;
+      background: rgba(244, 63, 94, 0.22) !important;
+      animation: shake 0.45s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-7px); }
+      40%, 80% { transform: translateX(7px); }
+    }
+
+    .remove-hint {
+      position: absolute;
+      top: 5px;
+      right: 8px;
+      font-size: 0.7rem;
+      opacity: 0.75;
+    }
+
+    /* Banco de fichas de Valores */
+    .bank-section {
+      margin-bottom: 1.4rem;
+    }
+
+    .bank-hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      justify-content: center;
+    }
+
+    .chip {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #f8fafc;
+      padding: 0.7rem 1.05rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: grab;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      touch-action: manipulation;
+    }
+
+    .chip:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+      box-shadow: 0 8px 18px rgba(56, 189, 248, 0.28);
+    }
+
+    .chip.selected {
+      border-color: var(--warning);
+      background: rgba(251, 191, 36, 0.22);
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
+    }
+
+    .chip.used {
+      opacity: 0.3;
+      pointer-events: none;
+      transform: scale(0.95);
+    }
+
+    /* Retroalimentación */
+    .feedback-banner {
+      border-radius: 14px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1.2rem;
+      display: none;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      animation: fadeSlideIn 0.3s ease;
+    }
+
+    .feedback-banner.success {
+      display: flex;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      color: #d1fae5;
+    }
+
+    .feedback-banner.error {
+      display: flex;
+      background: rgba(244, 63, 94, 0.16);
+      border: 1px solid rgba(251, 113, 133, 0.45);
+      color: #ffe4e6;
+    }
+
+    .controls-footer {
+      display: flex;
+      justify-content: center;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.9rem 1.4rem;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.9);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Pantalla Final */
+    .results-box {
+      text-align: center;
+      padding: 1rem 0.5rem;
+    }
+
+    .trophy-circle {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 1.25rem auto;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(52, 211, 153, 0.25));
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      box-shadow: 0 0 30px var(--accent-glow);
+      animation: pulseAvatar 2s infinite;
+    }
+
+    .final-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+    }
+
+    .final-stat-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 1rem 0.5rem;
+    }
+
+    .final-stat-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .final-stat-lbl {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Canvas de Confeti */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+  <canvas id="confetti-canvas"></canvas>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <main class="app-container">
+    <!-- Barra Superior -->
+    <header class="hud-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
+            <path d="M12 12 2.1 9.1"/>
+            <path d="m12 12 3.9 7.8"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-title">CodeMind // Valores</span>
+          <span class="brand-sub">MANUAL SOCIOEMOCIONAL INTERACTIVO</span>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-pill" title="Puntos acumulados">
+          <span>⚡</span>
+          <span id="score-display">0</span> pts
+        </div>
+        <div class="stat-pill" title="Racha de aciertos">
+          <span>🔥</span>
+          <span id="streak-display">0</span>
+        </div>
+        <button class="sound-btn" id="sound-toggle" title="Activar/Silenciar efectos de sonido" aria-label="Sonido">
+          🔊
+        </button>
+      </div>
+    </header>
+
+    <!-- Barra de Progreso -->
+    <div class="progress-wrapper" id="progress-container" style="display: none;">
+      <div class="progress-meta">
+        <span id="level-indicator">Situación 1 de 6</span>
+        <span id="progress-percent">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- PANTALLA 1: INICIO -->
+    <section class="screen active" id="start-screen">
+      <div class="intro-hero">
+        <div class="badge-pill">
+          <span>🛡️</span> Simulador Ético • Preparatoria
+        </div>
+        <h1>Repara las Situaciones Donde Faltan Valores</h1>
+        <p>
+          Observa cada escena escolar o cotidiana donde ocurre un conflicto por falta de valores. Selecciona y coloca los <strong>dos valores clave</strong> que faltan para transformar la situación positivamente.
+        </p>
+
+        <div class="how-to-grid">
+          <div class="how-card">
+            <span class="step-num">01 // DETECTA</span>
+            <h3>Observa la Escena</h3>
+            <p>Identifica qué antivalor o problema está afectando la convivencia.</p>
+          </div>
+          <div class="how-card">
+            <span class="step-num">02 // REPARA</span>
+            <h3>Coloca los Valores</h3>
+            <p>Toca o arrastra los 2 bloques de valores que faltan hacia las casillas vacías.</p>
+          </div>
+          <div class="how-card">
+            <span class="step-num">03 // TRANSFORMA</span>
+            <h3>Mira el Cambio</h3>
+            <p>Al acertar, la escena se reparará en pantalla y sumarás puntos.</p>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="start-btn">
+          <span>Comenzar Misión</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- PANTALLA 2: JUEGO -->
+    <section class="screen" id="game-screen">
+      <!-- Escena Visual Interactiva -->
+      <div class="scene-stage" id="scene-stage">
+        <div class="scene-top-bar">
+          <span class="status-badge" id="scene-status-badge">⚠️ CONFLICTO DETECTADO: FALTAN VALORES</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted);" id="scene-category">CONVIVENCIA</span>
+        </div>
+
+        <!-- Viñeta visual animada -->
+        <div class="visual-comic-box">
+          <div class="comic-actor">
+            <div class="comic-bubble" id="actor1-bubble">"..."</div>
+            <div class="comic-emoji" id="actor1-emoji">😒</div>
+          </div>
+
+          <div class="comic-connector" id="comic-connector">
+            <span>⚡❌⚡</span>
+            <span style="font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;" id="connector-label">SIN VALORES</span>
+          </div>
+
+          <div class="comic-actor">
+            <div class="comic-bubble" id="actor2-bubble">"..."</div>
+            <div class="comic-emoji" id="actor2-emoji">😔</div>
+          </div>
+        </div>
+
+        <h2 class="scenario-title" id="scenario-title">Título de la situación</h2>
+        <p class="scenario-desc" id="scenario-desc">
+          Descripción de la situación donde faltan valores...
+        </p>
+      </div>
+
+      <!-- Tablero de Colocación de Valores -->
+      <div class="logic-board">
+        <div class="logic-label">
+          <span>[ESPACIOS VACÍOS]</span> Coloca los 2 valores que faltan en esta situación:
+        </div>
+
+        <div class="slots-grid">
+          <div class="slot-wrapper">
+            <div class="slot-title">
+              <span>💎</span> Valor Faltante #1
+            </div>
+            <div class="drop-zone" id="slot-val1" data-slot="val1">
+              Toca o suelta aquí un Valor
+            </div>
+          </div>
+
+          <div class="slot-wrapper">
+            <div class="slot-title second-label">
+              <span>✨</span> Valor Faltante #2
+            </div>
+            <div class="drop-zone" id="slot-val2" data-slot="val2">
+              Toca o suelta aquí otro Valor
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Banco de Fichas de Valores -->
+      <div class="bank-section">
+        <p class="bank-hint" id="bank-hint">
+          💡 <strong>Tip:</strong> Toca un bloque de valor para seleccionarlo y luego toca una casilla vacía (o arrástralo).
+        </p>
+        <div class="chips-container" id="chips-container">
+          <!-- Se generan dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Retroalimentación -->
+      <div class="feedback-banner" id="feedback-banner">
+        <span id="feedback-icon" style="font-size: 1.3rem;">✅</span>
+        <div>
+          <strong id="feedback-title" style="display: block; margin-bottom: 0.2rem;">¡Escena Reparada!</strong>
+          <span id="feedback-text">Explicación...</span>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="controls-footer">
+        <button class="btn-secondary" id="clear-btn">Limpiar casillas</button>
+        <button class="btn-primary" id="check-btn" disabled>Aplicar Valores</button>
+        <button class="btn-primary" id="next-btn" style="display: none;">Siguiente Situación ➔</button>
+      </div>
+    </section>
+
+    <!-- PANTALLA 3: RESULTADOS -->
+    <section class="screen" id="end-screen">
+      <div class="results-box">
+        <div class="trophy-circle">🏆</div>
+        <div class="badge-pill">Misión Completada</div>
+        <h2 style="font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem;">¡Dominaste el Código Emocional!</h2>
+        <p style="color: var(--text-muted); max-width: 520px; margin: 0 auto;" id="final-message">
+          Has demostrado una excelente capacidad para aplicar valores y regulación emocional en situaciones reales de tu carrera.
+        </p>
+
+        <div class="final-stats">
+          <div class="final-stat-card">
+            <div class="final-stat-val" id="final-score">0</div>
+            <div class="final-stat-lbl">Puntuación Total</div>
+          </div>
+          <div class="final-stat-card">
+            <div class="final-stat-val" id="final-accuracy">100%</div>
+            <div class="final-stat-lbl">Precisión</div>
+          </div>
+          <div class="final-stat-card">
+            <div class="final-stat-val" id="final-streak">0</div>
+            <div class="final-stat-lbl">Mejor Racha</div>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="restart-btn">
+          <span>↻</span> Volver a Jugar
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ==========================================
+    // 1. BASE DE DATOS DE SITUACIONES SIN VALORES
+    // ==========================================
+    const levels = [
+      {
+        category: "INCLUSIÓN Y TRATO",
+        title: "Exclusión en el equipo de proyecto",
+        description: "Un alumno nuevo quiere integrarse a un equipo de 4 personas para el proyecto web, pero dos integrantes lo ignoran, se ríen por lo bajo y le dicen que 'ya están completos' solo por su forma de vestir.",
+        conflictState: {
+          actor1Emoji: "🙄",
+          actor1Bubble: "No, aquí no cabes...",
+          actor2Emoji: "😞",
+          actor2Bubble: "Solo quería ayudar...",
+          connector: "🚫💔",
+          label: "EXCLUSIÓN"
+        },
+        repairedState: {
+          actor1Emoji: "😄",
+          actor1Bubble: "¡Bienvenido al equipo!",
+          actor2Emoji: "🙌",
+          actor2Bubble: "¡Gracias por incluirme!",
+          connector: "🤝✨",
+          label: "INCLUSIÓN"
+        },
+        requiredValues: ["Empatía", "Respeto"],
+        options: [
+          { id: "o1", text: "Empatía", icon: "💙" },
+          { id: "o2", text: "Respeto", icon: "🤝" },
+          { id: "o3", text: "Egoísmo", icon: "😒" },
+          { id: "o4", text: "Prejuicio", icon: "🚧" },
+          { id: "o5", text: "Indiferencia", icon: "😶" }
+        ],
+        explanation: "¡Escena reparada! Al aplicar Empatía y Respeto, el equipo deja atrás los prejuicios, integra al compañero y suma talento al proyecto."
+      },
+      {
+        category: "ÉTICA Y AUTORÍA",
+        title: "Atribuirse el código de otra persona",
+        description: "Un compañero pasó toda la tarde diseñando la página de Física. Otro integrante toma el archivo, le borra el nombre del autor original y lo presenta al profesor como si él lo hubiera programado solo.",
+        conflictState: {
+          actor1Emoji: "😈",
+          actor1Bubble: "Diré que yo lo hice todo",
+          actor2Emoji: "😠",
+          actor2Bubble: "¡Ese era mi trabajo!",
+          connector: "⚠️📄",
+          label: "PLAGIO / ENGAÑO"
+        },
+        repairedState: {
+          actor1Emoji: "🙂",
+          actor1Bubble: "Crédito a quien lo programó",
+          actor2Emoji: "🤩",
+          actor2Bubble: "¡Gran trabajo juntos!",
+          connector: "🛡️✅",
+          label: "INTEGRIDAD"
+        },
+        requiredValues: ["Honestidad", "Justicia"],
+        options: [
+          { id: "o1", text: "Honestidad", icon: "🛡️" },
+          { id: "o2", text: "Justicia", icon: "⚖️" },
+          { id: "o3", text: "Deslealtad", icon: "🐍" },
+          { id: "o4", text: "Ventajismo", icon: "🎭" },
+          { id: "o5", text: "Apatía", icon: "💤" }
+        ],
+        explanation: "¡Escena reparada! La Honestidad y la Justicia reconocen el esfuerzo real de cada persona y mantienen la confianza del equipo."
+      },
+      {
+        category: "APOYO MUTUO",
+        title: "Burlas ante un error en exposición",
+        description: "Durante una presentación frente al grupo, una compañera se pone nerviosa, se equivoca al explicar un concepto y varios compañeros comienzan a burlarse y grabar videos en lugar de apoyarla.",
+        conflictState: {
+          actor1Emoji: "😂",
+          actor1Bubble: "¡Jaja, ni sabe leer!",
+          actor2Emoji: "😰",
+          actor2Bubble: "Qué vergüenza...",
+          connector: "📢💥",
+          label: "BURLA"
+        },
+        repairedState: {
+          actor1Emoji: "👏",
+          actor1Bubble: "¡Tú puedes, sigue!",
+          actor2Emoji: "😌",
+          actor2Bubble: "Gracias, ya me calmé",
+          connector: "🌟🤗",
+          label: "APOYO"
+        },
+        requiredValues: ["Solidaridad", "Tolerancia"],
+        options: [
+          { id: "o1", text: "Solidaridad", icon: "🤲" },
+          { id: "o2", text: "Tolerancia", icon: "🕊️" },
+          { id: "o3", text: "Crueldad", icon: "🔥" },
+          { id: "o4", text: "Intolerancia", icon: "⛔" },
+          { id: "o5", text: "Vanidad", icon: "🪞" }
+        ],
+        explanation: "¡Escena reparada! Con Solidaridad y Tolerancia entendemos que cualquiera puede ponerse nervioso y brindamos un entorno seguro."
+      },
+      {
+        category: "COMPROMISO",
+        title: "Abandono de tareas en entrega final",
+        description: "Un integrante prometió terminar la portada del sitio web para hoy. Sin embargo, prefirió salir sin avisar, no responde mensajes y deja a todo su equipo en riesgo de reprobar.",
+        conflictState: {
+          actor1Emoji: "🎮",
+          actor1Bubble: "Luego lo hago, da igual",
+          actor2Emoji: "😫",
+          actor2Bubble: "No contesta y falta poco...",
+          connector: "⏰❌",
+          label: "INCUMPLIMIENTO"
+        },
+        repairedState: {
+          actor1Emoji: "💻",
+          actor1Bubble: "¡Listo y enviado a tiempo!",
+          actor2Emoji: "🥳",
+          actor2Bubble: "¡Excelente compromiso!",
+          connector: "🚀✅",
+          label: "CUMPLIMIENTO"
+        },
+        requiredValues: ["Responsabilidad", "Compromiso"],
+        options: [
+          { id: "o1", text: "Responsabilidad", icon: "📌" },
+          { id: "o2", text: "Compromiso", icon: "🤜🤛" },
+          { id: "o3", text: "Negligencia", icon: "🌀" },
+          { id: "o4", text: "Evasión", icon: "🏃" },
+          { id: "o5", text: "Desinterés", icon: "😑" }
+        ],
+        explanation: "¡Escena reparada! La Responsabilidad y el Compromiso garantizan que cada integrante cumpla su palabra y respete el tiempo de los demás."
+      },
+      {
+        category: "DIÁLOGO PACÍFICO",
+        title: "Discusión agresiva por ideas distintas",
+        description: "Al debatir qué tema elegir para el manual socioemocional, dos compañeros empiezan a gritarse e insultarse porque ninguno quiere ceder ni escuchar los argumentos del otro.",
+        conflictState: {
+          actor1Emoji: "🤬",
+          actor1Bubble: "¡Tu idea no sirve!",
+          actor2Emoji: "😡",
+          actor2Bubble: "¡Cállate, se hace lo mío!",
+          connector: "💢🔥",
+          label: "AGRESIÓN"
+        },
+        repairedState: {
+          actor1Emoji: "🗣️",
+          actor1Bubble: "Me gusta tu punto de vista",
+          actor2Emoji: "😊",
+          actor2Bubble: "Unamos ambas ideas",
+          connector: "💬🕊️",
+          label: "DIÁLOGO"
+        },
+        requiredValues: ["Diálogo", "Humildad"],
+        options: [
+          { id: "o1", text: "Diálogo", icon: "💬" },
+          { id: "o2", text: "Humildad", icon: "🌱" },
+          { id: "o3", text: "Soberbia", icon: "👑" },
+          { id: "o4", text: "Agresividad", icon: "⚡" },
+          { id: "o5", text: "Terquedad", icon: "🧱" }
+        ],
+        explanation: "¡Escena reparada! El Diálogo y la Humildad permiten escuchar sin orgullo y encontrar acuerdos inteligentes."
+      },
+      {
+        category: "GRATITUD Y RECONOCIMIENTO",
+        title: "Ignorar el esfuerzo de quien ayuda",
+        description: "Una compañera se queda después de clases explicándole paso a paso cómo subir el código a GitHub a un amigo. Al lograrlo, él cierra su laptop y se va sin darle las gracias ni reconocer su tiempo.",
+        conflictState: {
+          actor1Emoji: "🚶",
+          actor1Bubble: "Bueno, ya me voy.",
+          actor2Emoji: "😕",
+          actor2Bubble: "Ni siquiera dijo gracias...",
+          connector: "❄️💔",
+          label: "INGRATITUD"
+        },
+        repairedState: {
+          actor1Emoji: "🙏",
+          actor1Bubble: "¡Mil gracias por tu tiempo!",
+          actor2Emoji: "🥰",
+          actor2Bubble: "¡Con gusto, cuenta conmigo!",
+          connector: "✨💛",
+          label: "GRATITUD"
+        },
+        requiredValues: ["Gratitud", "Generosidad"],
+        options: [
+          { id: "o1", text: "Gratitud", icon: "🙏" },
+          { id: "o2", text: "Generosidad", icon: "🎁" },
+          { id: "o3", text: "Ingratitud", icon: "🧊" },
+          { id: "o4", text: "Arrogancia", icon: "😤" },
+          { id: "o5", text: "Frialdad", icon: "❄️" }
+        ],
+        explanation: "¡Escena reparada! La Gratitud y la Generosidad valoran el tiempo y apoyo desinteresado de quienes nos ayudan a crecer."
+      }
+    ];
+
+    // ==========================================
+    // 2. SISTEMA DE AUDIO SINTETIZADO (WEB AUDIO API)
+    // ==========================================
+    let soundEnabled = true;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(type) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'tap') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(760, now + 0.08);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        } else if (type === 'drop') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(380, now);
+          osc.frequency.exponentialRampToValueAtTime(620, now + 0.12);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+          osc.start(now);
+          osc.stop(now + 0.13);
+        } else if (type === 'success') {
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, idx) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = 'triangle';
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.frequency.setValueAtTime(freq, now + idx * 0.08);
+            g.gain.setValueAtTime(0.14, now + idx * 0.08);
+            g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+            o.start(now + idx * 0.08);
+            o.stop(now + idx * 0.08 + 0.25);
+          });
+        } else if (type === 'error') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(150, now + 0.25);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+          osc.start(now);
+          osc.stop(now + 0.26);
+        }
+      } catch (e) {
+        // Ignorar si el navegador bloquea audio antes de interacción
+      }
+    }
+
+    // ==========================================
+    // 3. ESTADO DEL JUEGO Y LÓGICA INTERACTIVA
+    // ==========================================
+    let currentLevelIdx = 0;
+    let score = 0;
+    let streak = 0;
+    let maxStreak = 0;
+    let attemptsCurrentLevel = 0;
+    let firstTryWins = 0;
+    let levelCompleted = false;
+
+    // Estado de selección actual
+    let selectedChipId = null;
+    let placedSlots = {
+      val1: null,  // { id, text, icon }
+      val2: null   // { id, text, icon }
+    };
+
+    // Referencias DOM
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const endScreen = document.getElementById('end-screen');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-fill');
+    const levelIndicator = document.getElementById('level-indicator');
+    const progressPercent = document.getElementById('progress-percent');
+
+    const scoreDisplay = document.getElementById('score-display');
+    const streakDisplay = document.getElementById('streak-display');
+    const soundToggle = document.getElementById('sound-toggle');
+
+    const sceneStage = document.getElementById('scene-stage');
+    const sceneStatusBadge = document.getElementById('scene-status-badge');
+    const slotVal1El = document.getElementById('slot-val1');
+    const slotVal2El = document.getElementById('slot-val2');
+    const chipsContainer = document.getElementById('chips-container');
+
+    const feedbackBanner = document.getElementById('feedback-banner');
+    const feedbackIcon = document.getElementById('feedback-icon');
+    const feedbackTitle = document.getElementById('feedback-title');
+    const feedbackText = document.getElementById('feedback-text');
+
+    const checkBtn = document.getElementById('check-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    // Toggle sonido
+    soundToggle.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+    });
+
+    // Iniciar Juego
+    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('restart-btn').addEventListener('click', startGame);
+
+    function startGame() {
+      playTone('tap');
+      currentLevelIdx = 0;
+      score = 0;
+      streak = 0;
+      maxStreak = 0;
+      firstTryWins = 0;
+      updateHUD();
+
+      startScreen.classList.remove('active');
+      endScreen.classList.remove('active');
+      gameScreen.classList.add('active');
+      progressContainer.style.display = 'block';
+
+      loadLevel(currentLevelIdx);
+    }
+
+    function updateHUD() {
+      scoreDisplay.textContent = score;
+      streakDisplay.textContent = streak;
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function loadLevel(idx) {
+      const lvl = levels[idx];
+      levelCompleted = false;
+      attemptsCurrentLevel = 0;
+      selectedChipId = null;
+      placedSlots = { val1: null, val2: null };
+
+      // Actualizar progreso
+      const pct = Math.round((idx / levels.length) * 100);
+      levelIndicator.textContent = `Situación ${idx + 1} de ${levels.length}`;
+      progressPercent.textContent = `${pct}%`;
+      progressFill.style.width = `${pct}%`;
+
+      // Cargar escena en estado de conflicto (sin valores)
+      sceneStage.classList.remove('repaired');
+      sceneStatusBadge.textContent = '⚠️ CONFLICTO DETECTADO: FALTAN VALORES';
+      document.getElementById('scene-category').textContent = lvl.category;
+      document.getElementById('scenario-title').textContent = lvl.title;
+      document.getElementById('scenario-desc').textContent = lvl.description;
+
+      updateComicVisuals(lvl.conflictState);
+
+      // Resetear UI
+      feedbackBanner.className = 'feedback-banner';
+      checkBtn.style.display = 'inline-flex';
+      checkBtn.disabled = true;
+      clearBtn.style.display = 'inline-flex';
+      nextBtn.style.display = 'none';
+
+      renderSlots();
+      renderChips(shuffleArray(lvl.options));
+    }
+
+    function updateComicVisuals(state) {
+      document.getElementById('actor1-emoji').textContent = state.actor1Emoji;
+      document.getElementById('actor1-bubble').textContent = `"${state.actor1Bubble}"`;
+      document.getElementById('actor2-emoji').textContent = state.actor2Emoji;
+      document.getElementById('actor2-bubble').textContent = `"${state.actor2Bubble}"`;
+      document.getElementById('comic-connector').innerHTML = `
+        <span>${state.connector}</span>
+        <span style="font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;">${state.label}</span>
+      `;
+    }
+
+    function renderSlots() {
+      // Slot 1
+      slotVal1El.className = 'drop-zone';
+      if (placedSlots.val1) {
+        slotVal1El.classList.add('filled');
+        slotVal1El.innerHTML = `${placedSlots.val1.icon} ${placedSlots.val1.text} <span class="remove-hint">✕</span>`;
+      } else {
+        slotVal1El.textContent = 'Toca o suelta aquí un Valor';
+        if (selectedChipId) slotVal1El.classList.add('ready-target');
+      }
+
+      // Slot 2
+      slotVal2El.className = 'drop-zone';
+      if (placedSlots.val2) {
+        slotVal2El.classList.add('filled', 'second-filled');
+        slotVal2El.innerHTML = `${placedSlots.val2.icon} ${placedSlots.val2.text} <span class="remove-hint">✕</span>`;
+      } else {
+        slotVal2El.textContent = 'Toca o suelta aquí otro Valor';
+        if (selectedChipId) slotVal2El.classList.add('ready-target');
+      }
+
+      checkBtn.disabled = !(placedSlots.val1 && placedSlots.val2);
+    }
+
+    let currentShuffledOptions = [];
+
+    function renderChips(options) {
+      currentShuffledOptions = options;
+      chipsContainer.innerHTML = '';
+
+      options.forEach(opt => {
+        const isUsed = (placedSlots.val1 && placedSlots.val1.id === opt.id) ||
+                       (placedSlots.val2 && placedSlots.val2.id === opt.id);
+        const isSelected = selectedChipId === opt.id;
+
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        if (isUsed) chip.classList.add('used');
+        if (isSelected) chip.classList.add('selected');
+        chip.draggable = !isUsed && !levelCompleted;
+        chip.dataset.id = opt.id;
+
+        chip.innerHTML = `<span>${opt.icon}</span><span>${opt.text}</span>`;
+
+        // Interacción por clic / toque
+        chip.addEventListener('click', () => {
+          if (levelCompleted || isUsed) return;
+          playTone('tap');
+          if (selectedChipId === opt.id) {
+            selectedChipId = null;
+          } else {
+            selectedChipId = opt.id;
+          }
+          renderChips(currentShuffledOptions);
+          renderSlots();
+        });
+
+        // Interacción Drag & Drop (Escritorio)
+        chip.addEventListener('dragstart', (e) => {
+          if (levelCompleted || isUsed) {
+            e.preventDefault();
+            return;
+          }
+          e.dataTransfer.setData('text/plain', opt.id);
+          selectedChipId = opt.id;
+        });
+
+        chipsContainer.appendChild(chip);
+      });
+    }
+
+    // Configurar eventos de las zonas de colocación (Dropzones)
+    [slotVal1El, slotVal2El].forEach(zone => {
+      const slotType = zone.dataset.slot;
+
+      // Clic / Toque en la casilla
+      zone.addEventListener('click', () => {
+        if (levelCompleted) return;
+
+        if (selectedChipId) {
+          const opt = currentShuffledOptions.find(o => o.id === selectedChipId);
+          if (opt) {
+            placeOptionInSlot(opt, slotType);
+          }
+        } else if (placedSlots[slotType]) {
+          playTone('tap');
+          placedSlots[slotType] = null;
+          feedbackBanner.className = 'feedback-banner';
+          renderSlots();
+          renderChips(currentShuffledOptions);
+        }
+      });
+
+      // Drag over
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!levelCompleted) zone.classList.add('drag-over');
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('drag-over');
+      });
+
+      // Drop
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (levelCompleted) return;
+
+        const chipId = e.dataTransfer.getData('text/plain') || selectedChipId;
+        const opt = currentShuffledOptions.find(o => o.id === chipId);
+        if (opt) {
+          placeOptionInSlot(opt, slotType);
+        }
+      });
+    });
+
+    function placeOptionInSlot(opt, slotType) {
+      playTone('drop');
+      placedSlots[slotType] = opt;
+      selectedChipId = null;
+      feedbackBanner.className = 'feedback-banner';
+      renderSlots();
+      renderChips(currentShuffledOptions);
+    }
+
+    // Limpiar casillas
+    clearBtn.addEventListener('click', () => {
+      if (levelCompleted) return;
+      playTone('tap');
+      placedSlots = { val1: null, val2: null };
+      selectedChipId = null;
+      feedbackBanner.className = 'feedback-banner';
+      renderSlots();
+      renderChips(currentShuffledOptions);
+    });
+
+    // Verificar respuesta (El orden de los 2 valores no importa)
+    checkBtn.addEventListener('click', () => {
+      if (!placedSlots.val1 || !placedSlots.val2 || levelCompleted) return;
+
+      const lvl = levels[currentLevelIdx];
+      attemptsCurrentLevel++;
+
+      const val1Ok = lvl.requiredValues.includes(placedSlots.val1.text);
+      const val2Ok = lvl.requiredValues.includes(placedSlots.val2.text);
+
+      if (val1Ok && val2Ok && placedSlots.val1.text !== placedSlots.val2.text) {
+        // ¡Escena Reparada!
+        levelCompleted = true;
+        playTone('success');
+        launchConfetti();
+
+        // Transformar visualmente la escena a estado positivo
+        sceneStage.classList.add('repaired');
+        sceneStatusBadge.textContent = '✅ ESCENA REPARADA: VALORES APLICADOS';
+        updateComicVisuals(lvl.repairedState);
+
+        const pointsEarned = attemptsCurrentLevel === 1 ? 150 : 80;
+        score += pointsEarned;
+        streak++;
+        if (streak > maxStreak) maxStreak = streak;
+        if (attemptsCurrentLevel === 1) firstTryWins++;
+        updateHUD();
+
+        slotVal1El.classList.add('correct-lock');
+        slotVal2El.classList.add('correct-lock');
+
+        feedbackBanner.className = 'feedback-banner success';
+        feedbackIcon.textContent = '🌟';
+        feedbackTitle.textContent = `¡Situación Transformada! (+${pointsEarned} pts)`;
+        feedbackText.textContent = lvl.explanation;
+
+        checkBtn.style.display = 'none';
+        clearBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-flex';
+        nextBtn.textContent = currentLevelIdx === levels.length - 1 ? 'Ver Resultados Finales 🏆' : 'Siguiente Situación ➔';
+      } else {
+        // Error: alguno es un antivalor o no corresponde
+        playTone('error');
+        streak = 0;
+        updateHUD();
+
+        if (!val1Ok) slotVal1El.classList.add('wrong-shake');
+        if (!val2Ok) slotVal2El.classList.add('wrong-shake');
+
+        setTimeout(() => {
+          slotVal1El.classList.remove('wrong-shake');
+          slotVal2El.classList.remove('wrong-shake');
+        }, 500);
+
+        let hintMsg = "Uno o ambos bloques no ayudan a resolver el conflicto. ";
+        if (val1Ok && !val2Ok) {
+          hintMsg = `¡"${placedSlots.val1.text}" sí es correcto! Cambia el segundo bloque por otro valor positivo que haga falta.`;
+        } else if (!val1Ok && val2Ok) {
+          hintMsg = `¡"${placedSlots.val2.text}" sí es correcto! Cambia el primer bloque por otro valor positivo que haga falta.`;
+        } else {
+          hintMsg = "Evita los antivalores y elige los dos valores positivos que reparan esta situación.";
+        }
+
+        feedbackBanner.className = 'feedback-banner error';
+        feedbackIcon.textContent = '⚠️';
+        feedbackTitle.textContent = 'La escena sigue en conflicto';
+        feedbackText.textContent = hintMsg;
+      }
+    });
+
+    // Siguiente Nivel
+    nextBtn.addEventListener('click', () => {
+      playTone('tap');
+      currentLevelIdx++;
+      if (currentLevelIdx < levels.length) {
+        loadLevel(currentLevelIdx);
+      } else {
+        showEndScreen();
+      }
+    });
+
+    function showEndScreen() {
+      progressFill.style.width = '100%';
+      progressPercent.textContent = '100%';
+      gameScreen.classList.remove('active');
+      endScreen.classList.add('active');
+      launchConfetti();
+
+      const accuracy = Math.round((firstTryWins / levels.length) * 100);
+      document.getElementById('final-score').textContent = score;
+      document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+      document.getElementById('final-streak').textContent = maxStreak;
+    }
+
+    // ==========================================
+    // 4. ANIMACIÓN DE PARTÍCULAS EN EL FONDO
+    // ==========================================
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvases() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+
+    function initParticles() {
+      particles = [];
+      const count = Math.min(45, Math.floor(window.innerWidth / 25));
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * bgCanvas.width,
+          y: Math.random() * bgCanvas.height,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: (Math.random() - 0.5) * 0.45,
+          r: Math.random() * 2 + 1
+        });
+      }
+    }
+
+    function animateBg() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      bgCtx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+      bgCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > bgCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > bgCanvas.height) p.vy *= -1;
+
+        bgCtx.beginPath();
+        bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bgCtx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 120) {
+            bgCtx.beginPath();
+            bgCtx.moveTo(p.x, p.y);
+            bgCtx.lineTo(p2.x, p2.y);
+            bgCtx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateBg);
+    }
+
+    // ==========================================
+    // 5. EFECTO DE CONFETI AL ACERTAR
+    // ==========================================
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const confCtx = confettiCanvas.getContext('2d');
+    let confettiPieces = [];
+
+    function launchConfetti() {
+      const colors = ['#38bdf8', '#34d399', '#fbbf24', '#818cf8', '#f472b6'];
+      for (let i = 0; i < 65; i++) {
+        confettiPieces.push({
+          x: confettiCanvas.width / 2,
+          y: confettiCanvas.height / 2,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.7) * 14,
+          size: Math.random() * 7 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1,
+          rot: Math.random() * 360
+        });
+      }
+    }
+
+    function animateConfetti() {
+      confCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiPieces.forEach((c, i) => {
+        c.x += c.vx;
+        c.y += c.vy;
+        c.vy += 0.35; // gravedad
+        c.alpha -= 0.016;
+        c.rot += 5;
+
+        if (c.alpha <= 0) {
+          confettiPieces.splice(i, 1);
+          return;
+        }
+
+        confCtx.save();
+        confCtx.globalAlpha = c.alpha;
+        confCtx.translate(c.x, c.y);
+        confCtx.rotate((c.rot * Math.PI) / 180);
+        confCtx.fillStyle = c.color;
+        confCtx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size);
+        confCtx.restore();
+      });
+      requestAnimationFrame(animateConfetti);
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvases();
+      initParticles();
+    });
+
+    window.onload = () => {
+      resizeCanvases();
+      initParticles();
+      animateBg();
+      animateConfetti();
+    };
+  </script>
+</body>
+</html>
